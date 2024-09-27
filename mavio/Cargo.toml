@@ -17,12 +17,7 @@ categories = [
     "no-std::no-alloc",
 ]
 resolver = "2"
-include = [
-    "message_definitions",
-    "src",
-    "build.rs",
-    "Cargo.toml"
-]
+include = ["message_definitions", "src", "build.rs", "Cargo.toml"]
 
 [lib]
 name = "mavio"
@@ -43,6 +38,9 @@ sha2 = { version = "0.10.8", default-features = false, optional = true }
 tbytes = { version = "0.1.0", default-features = false }
 thiserror = { version = "2.0.9", optional = true }
 tokio = { version = "1.36.0", features = ["io-util"], optional = true }
+tokio-serial = "5.4.4"
+tokio-util = { version = "0.7.12", default-features = false }
+udp-stream = "0.0.12"
 
 [build-dependencies]
 mavspec = { version = "0.4.5", default-features = false, features = ["rust_gen", "fingerprints"] }
@@ -61,11 +59,7 @@ extras = []
 unsafe = []
 
 ## Enable memory allocation support.
-alloc = [
-    "mavspec/alloc",
-    "serde/alloc",
-    "tbytes/alloc",
-]
+alloc = ["mavspec/alloc", "serde/alloc", "tbytes/alloc"]
 ## Enable Rust std library.
 std = [
     "alloc",
@@ -74,7 +68,7 @@ std = [
     "sha2/std",
     "tbytes/std",
     "thiserror",
-    "bitflags/std"
+    "bitflags/std",
 ]
 
 ## Enable sha2 backend for message signing
