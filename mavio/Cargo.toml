@@ -17,12 +17,7 @@ categories = [
     "no-std::no-alloc",
 ]
 resolver = "2"
-include = [
-    "message_definitions",
-    "src",
-    "build.rs",
-    "Cargo.toml"
-]
+include = ["message_definitions", "src", "build.rs", "Cargo.toml"]
 
 [lib]
 name = "mavio"
@@ -36,12 +31,17 @@ bitflags = { version = "2.5.0", default-features = false }
 crc-any = { version = "2.4.4", default-features = false }
 mavspec = { version = "0.3.4", default-features = false, features = ["rust"] }
 paste = "1.0.14"
-serde = { version = "1.0.197", default-features = false, features = ["derive"], optional = true }
+serde = { version = "1.0.197", default-features = false, features = [
+    "derive",
+], optional = true }
 serde_arrays = { version = "0.1.0", default-features = false, optional = true }
 sha2 = { version = "0.10.8", default-features = false, optional = true }
 tbytes = { version = "0.1.0", default-features = false }
 thiserror = { version = "1.0.58", optional = true }
 tokio = { version = "1.36.0", features = ["io-util"], optional = true }
+tokio-serial = "5.4.4"
+tokio-util = { version = "0.7.12", default-features = false }
+udp-stream = "0.0.12"
 
 [dev-dependencies]
 log = "0.4.21"
@@ -49,7 +49,10 @@ env_logger = "0.11.3"
 portpicker = "0.1.1"
 
 [build-dependencies]
-mavspec = { version = "0.3.4", default-features = false, features = ["rust_gen", "fingerprints"] }
+mavspec = { version = "0.3.4", default-features = false, features = [
+    "rust_gen",
+    "fingerprints",
+] }
 
 ###########################################################
 # Features
@@ -65,11 +68,7 @@ extras = []
 unsafe = []
 
 ## Enable memory allocation support.
-alloc = [
-    "mavspec/alloc",
-    "serde/alloc",
-    "tbytes/alloc",
-]
+alloc = ["mavspec/alloc", "serde/alloc", "tbytes/alloc"]
 ## Enable Rust std library.
 std = [
     "alloc",
@@ -78,19 +77,14 @@ std = [
     "sha2/std",
     "tbytes/std",
     "thiserror",
-    "bitflags/std"
+    "bitflags/std",
 ]
 
 ## Enable sha2 backend for message signing
 sha2 = ["dep:sha2"]
 
 ## Enable serde support.
-serde = [
-    "dep:serde",
-    "dep:serde_arrays",
-    "mavspec/serde",
-    "bitflags/serde",
-]
+serde = ["dep:serde", "dep:serde_arrays", "mavspec/serde", "bitflags/serde"]
 ## Enable tokio (async) support
 async = ["dep:tokio", "std"]
 
@@ -149,4 +143,13 @@ all = [
 ###########################################################
 [package.metadata.docs.rs]
 # Features to include into `docs.rs` documentation
-features = ["serde", "all", "unstable", "unsafe", "extras", "std", "async", "sha2"]
+features = [
+    "serde",
+    "all",
+    "unstable",
+    "unsafe",
+    "extras",
+    "std",
+    "async",
+    "sha2",
+]
