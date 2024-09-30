@@ -29,7 +29,7 @@ path = "src/lib.rs"
 [dependencies]
 bitflags = { version = "2.5.0", default-features = false }
 crc-any = { version = "2.4.4", default-features = false }
-mavspec = { version = "0.3.4", default-features = false, features = ["rust"] }
+mavspec = { git = "https://github.com/roby2014/mavspec", rev="99dade3a71a4516256967ee04cae098e38b87a89", default-features = false, features = ["rust"] }
 paste = "1.0.14"
 serde = { version = "1.0.197", default-features = false, features = [
     "derive",
@@ -49,7 +49,7 @@ env_logger = "0.11.3"
 portpicker = "0.1.1"
 
 [build-dependencies]
-mavspec = { version = "0.3.4", default-features = false, features = [
+mavspec = { git = "https://github.com/roby2014/mavspec", rev="99dade3a71a4516256967ee04cae098e38b87a89", default-features = false, features = [
     "rust_gen",
     "fingerprints",
 ] }

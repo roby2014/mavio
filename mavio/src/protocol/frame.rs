@@ -523,9 +523,18 @@ impl<V: MaybeVersioned> Frame<V> {
     }
 
     fn fill_body_buffer(&self, buf: &mut [u8]) {
-        let payload_length = self.payload_length() as usize;
+        let payload_length = Payload::truncated_length(self.payload.bytes());
+        //let payload_length = self.payload_length() as usize;
+        let payload_bytes = self.payload.bytes();
 
-        buf[0..payload_length].copy_from_slice(self.payload.bytes());
+        // Check if the actual length of the payload is less than the expected payload length
+        if payload_bytes.len() < payload_length {
+            let mut filled_payload = vec![0u8; payload_length];
+            filled_payload[..payload_bytes.len()].copy_from_slice(payload_bytes);
+            buf[0..payload_length].copy_from_slice(&filled_payload);
+        } else {
+            buf[0..payload_length].copy_from_slice(payload_bytes);
+        }
 
         let checksum_bytes: [u8; 2] = self.checksum.to_le_bytes();
         buf[payload_length..payload_length + 2].copy_from_slice(&checksum_bytes);
