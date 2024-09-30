@@ -1,5 +1,7 @@
 //! # MAVLink frame
 
+use std::io::Cursor;
+
 use crc_any::CRCu16;
 
 #[cfg(feature = "async")]
@@ -289,7 +291,7 @@ impl<V: MaybeVersioned> Frame<V> {
     ///
     /// # Errors
     ///
-    /// * Returns [`Error::Spec`] if message discovery failed.  
+    /// * Returns [`Error::Spec`] if message discovery failed.
     /// * Returns [`FrameError::Checksum`] (wrapped by [`Error`]) if checksum
     ///   validation failed.
     ///
@@ -475,6 +477,20 @@ impl<V: MaybeVersioned> Frame<V> {
         let frame = Self::try_from_raw_body(header, body_bytes)?;
 
         Ok(frame)
+    }
+
+    /// Deserialize Frame from a slice that has been received from, for example, a socket.
+    /// The input buffer should start with the sequence field of the Mavlink frame. The
+    /// initial packet marker, length field, and flag fields should be excluded.
+    pub fn deser(input: &[u8]) -> Result<Frame<V>> {
+        Self::recv(&mut Cursor::new(input))
+    }
+
+    /// Serialize Frame into a vector, so it can be sent over a socket, for example.
+    /// The resulting buffer will start with the sequence field of the Mavlink frame
+    /// and will not include the initial packet marker, length field, and flags.
+    pub fn ser(&self, payload: &mut [u8]) -> Result<usize> {
+        self.send(&mut Cursor::new(payload))
     }
 
     pub(crate) fn send<W: Write>(&self, writer: &mut W) -> Result<usize> {
@@ -741,6 +757,7 @@ mod tests {
 
     use crc_any::CRCu16;
 
+    use crate::consts::STX_V2;
     #[allow(unused_imports)]
     use crate::protocol::{V1, V2};
 
@@ -990,5 +1007,42 @@ mod tests {
             .clone()
             .try_into_versioned::<Versionless>()
             .is_ok());
+    }
+
+    #[test]
+    fn test_deser_v2() {
+        let buffer = vec![
+            12,     // \
+            24,     //  |Junk bytes
+            240,    // /
+            STX_V2, // magic byte
+            3,      // payload_length
+            0,      // incompatibility flags
+            0,      // compatibility flags
+            1,      // sequence
+            10,     // system ID
+            255,    // component ID
+            0,      // \
+            0,      //  | message ID
+            0,      // /
+            0,      // \
+            0,      //  | payload
+            1,      // /
+            25,     // \
+            25,     // / checksum
+        ];
+
+        let frame = Frame::<Versionless>::deser(&buffer);
+        assert_eq!(frame.clone().unwrap().payload_length(), 3);
+        assert_eq!(frame.clone().unwrap().sequence(), 1);
+        assert_eq!(frame.clone().unwrap().system_id(), 10);
+        assert_eq!(frame.clone().unwrap().component_id(), 255);
+
+        let mut payload = vec![0u8; buffer.len() - 3];
+        assert_eq!(
+            frame.unwrap().ser(&mut payload).unwrap(),
+            buffer.len() - 3 /* remove junk */
+        );
+        assert_eq!(payload, buffer[3..buffer.len()]);
     }
 }
