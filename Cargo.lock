@@ -484,7 +484,7 @@ dependencies = [
  "crc-any",
  "env_logger 0.11.3",
  "log",
- "mavspec",
+ "mavspec 0.3.4 (git+https://github.com/roby2014/mavspec?rev=390b1e5439e8dfbee56e5f181dc8c36a2796772f)",
  "paste",
  "portpicker",
  "serde",
@@ -516,7 +516,7 @@ dependencies = [
  "env_logger 0.11.3",
  "log",
  "mavio",
- "mavspec",
+ "mavspec 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -534,9 +534,19 @@ name = "mavspec"
 version = "0.3.4"
 source = "git+https://github.com/roby2014/mavspec?rev=99dade3a71a4516256967ee04cae098e38b87a89#99dade3a71a4516256967ee04cae098e38b87a89"
 dependencies = [
- "mavspec_rust_derive",
- "mavspec_rust_gen",
- "mavspec_rust_spec",
+ "mavspec_rust_derive 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "mavspec_rust_gen 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "mavspec_rust_spec 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "mavspec"
+version = "0.3.4"
+source = "git+https://github.com/roby2014/mavspec?rev=390b1e5439e8dfbee56e5f181dc8c36a2796772f#390b1e5439e8dfbee56e5f181dc8c36a2796772f"
+dependencies = [
+ "mavspec_rust_derive 0.3.4 (git+https://github.com/roby2014/mavspec?rev=390b1e5439e8dfbee56e5f181dc8c36a2796772f)",
+ "mavspec_rust_gen 0.3.4 (git+https://github.com/roby2014/mavspec?rev=390b1e5439e8dfbee56e5f181dc8c36a2796772f)",
+ "mavspec_rust_spec 0.3.4 (git+https://github.com/roby2014/mavspec?rev=390b1e5439e8dfbee56e5f181dc8c36a2796772f)",
 ]
 
 [[package]]
@@ -544,6 +554,19 @@ name = "mavspec_rust_derive"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20d1e1fe2364d1508ed27bd41a27baeada2977e432d857618a5fdc6f704edde4"
+dependencies = [
+ "crc-any",
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "thiserror",
+]
+
+[[package]]
+name = "mavspec_rust_derive"
+version = "0.3.4"
+source = "git+https://github.com/roby2014/mavspec?rev=390b1e5439e8dfbee56e5f181dc8c36a2796772f#390b1e5439e8dfbee56e5f181dc8c36a2796772f"
 dependencies = [
  "crc-any",
  "heck",
@@ -574,10 +597,39 @@ dependencies = [
 ]
 
 [[package]]
+name = "mavspec_rust_gen"
+version = "0.3.4"
+source = "git+https://github.com/roby2014/mavspec?rev=390b1e5439e8dfbee56e5f181dc8c36a2796772f#390b1e5439e8dfbee56e5f181dc8c36a2796772f"
+dependencies = [
+ "base64",
+ "cargo-manifest",
+ "heck",
+ "log",
+ "mavinspect",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn",
+ "thiserror",
+]
+
+[[package]]
 name = "mavspec_rust_spec"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6866ac044f92ba8edd4d00df286c7523d26d8c4c4457c32389341ccf258dbeb9"
+dependencies = [
+ "bitflags 2.5.0",
+ "serde",
+ "tbytes",
+]
+
+[[package]]
+name = "mavspec_rust_spec"
+version = "0.3.4"
+source = "git+https://github.com/roby2014/mavspec?rev=390b1e5439e8dfbee56e5f181dc8c36a2796772f#390b1e5439e8dfbee56e5f181dc8c36a2796772f"
 dependencies = [
  "bitflags 2.5.0",
  "serde",

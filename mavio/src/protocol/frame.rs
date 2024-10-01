@@ -527,15 +527,17 @@ impl<V: MaybeVersioned> Frame<V> {
         //let payload_length = self.payload_length() as usize;
         let payload_bytes = self.payload.bytes();
 
-        // Check if the actual length of the payload is less than the expected payload length
-        if payload_bytes.len() < payload_length {
-            let mut filled_payload = vec![0u8; payload_length];
-            filled_payload[..payload_bytes.len()].copy_from_slice(payload_bytes);
-            buf[0..payload_length].copy_from_slice(&filled_payload);
-        } else {
-            buf[0..payload_length].copy_from_slice(payload_bytes);
-        }
-
+        buf[0..payload_length].copy_from_slice(payload_bytes);
+        /*
+               // Check if the actual length of the payload is less than the expected payload length
+               if payload_bytes.len() < payload_length {
+                   let mut filled_payload = vec![0u8; payload_length];
+                   filled_payload[..payload_bytes.len()].copy_from_slice(payload_bytes);
+                   buf[0..payload_length].copy_from_slice(&filled_payload);
+               } else {
+                   buf[0..payload_length].copy_from_slice(payload_bytes);
+               }
+        */
         let checksum_bytes: [u8; 2] = self.checksum.to_le_bytes();
         buf[payload_length..payload_length + 2].copy_from_slice(&checksum_bytes);
 
@@ -1053,5 +1055,34 @@ mod tests {
             buffer.len() - 3 /* remove junk */
         );
         assert_eq!(payload, buffer[3..buffer.len()]);
+    }
+
+    #[test]
+    fn test_error_v2() {
+        let buffer = vec![
+            12,     // \
+            24,     //  |Junk bytes
+            240,    // /
+            STX_V2, // magic byte
+            1,      // payload_length
+            0,      // incompatibility flags
+            0,      // compatibility flags
+            1,      // sequence
+            10,     // system ID
+            255,    // component ID
+            74,     // \
+            0,      //  | message ID
+            0,      // /
+            25,     // \
+            25,     // / checksum
+        ];
+
+        let mut frame = Frame::<Versionless>::recv(&mut Cursor::new(buffer)).unwrap();
+        dbg!(&frame);
+
+        let mut payload = vec![];
+        frame.send(&mut Cursor::new(payload));
+
+        assert!(false);
     }
 }
