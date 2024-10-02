@@ -1073,16 +1073,15 @@ mod tests {
             74,     // \
             0,      //  | message ID
             0,      // /
+            0,      //  | payload
             25,     // \
             25,     // / checksum
         ];
 
-        let mut frame = Frame::<Versionless>::recv(&mut Cursor::new(buffer)).unwrap();
+        let frame = Frame::<Versionless>::recv(&mut Cursor::new(buffer)).unwrap();
         dbg!(&frame);
 
-        let mut payload = vec![];
-        frame.send(&mut Cursor::new(payload));
-
-        assert!(false);
+        let payload = vec![];
+        assert!(frame.send(&mut Cursor::new(payload)).is_ok());
     }
 }
