@@ -72,3 +72,8 @@ pub use async_receiver::AsyncReceiver;
 mod async_sender;
 #[cfg(feature = "async")]
 pub use async_sender::AsyncSender;
+#[cfg(feature = "async")]
+mod async_connection;
+#[cfg(feature = "async")]
+pub use async_connection::AsyncConnection;
+pub use async_connection::connect_async;
