@@ -1,5 +1,8 @@
 //! # MAVLink frame
 
+use std::io;
+use std::sync::Arc;
+
 use crc_any::CRCu16;
 
 #[cfg(feature = "async")]
@@ -485,7 +488,7 @@ impl<V: MaybeVersioned> Frame<V> {
         #[cfg(feature = "alloc")]
         let mut buf = alloc::vec![0u8; self.body_length()];
 
-        self.fill_body_buffer(&mut buf);
+        self.fill_body_buffer(&mut buf)?;
         writer.write_all(buf.as_slice())?;
 
         Ok(header_bytes_sent + self.body_length())
@@ -500,16 +503,30 @@ impl<V: MaybeVersioned> Frame<V> {
         #[cfg(feature = "alloc")]
         let mut buf = vec![0u8; self.body_length()];
 
-        self.fill_body_buffer(&mut buf);
+        self.fill_body_buffer(&mut buf)?;
         writer.write_all(buf.as_slice()).await?;
 
         Ok(header_bytes_sent + self.body_length())
     }
 
-    fn fill_body_buffer(&self, buf: &mut [u8]) {
+    fn fill_body_buffer(&self, buf: &mut [u8]) -> Result<()> {
         let payload_length = self.payload_length() as usize;
 
-        buf[0..payload_length].copy_from_slice(self.payload.bytes());
+        // FIXME: First byte shouldnt be truncated when receiving.
+        // This is glue code in order to not panic on copy_from_slice and give context why.
+        if self.payload().bytes().len() == 0 && payload_length == 1 {
+            buf[0] = 0;
+        } else if payload_length == self.payload().bytes().len() {
+            buf[0..payload_length].copy_from_slice(self.payload.bytes());
+        } else {
+            return Err(Error::Io(Arc::new(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!(
+                    "Unexpected payload length for message id '{}'",
+                    self.message_id()
+                ),
+            ))));
+        }
 
         let checksum_bytes: [u8; 2] = self.checksum.to_le_bytes();
         buf[payload_length..payload_length + 2].copy_from_slice(&checksum_bytes);
@@ -519,6 +536,8 @@ impl<V: MaybeVersioned> Frame<V> {
             let sig_start_idx = payload_length + 2;
             buf[sig_start_idx..self.body_length()].copy_from_slice(&signature_bytes);
         }
+
+        Ok(())
     }
 
     #[inline]
@@ -741,6 +760,7 @@ mod tests {
 
     use crc_any::CRCu16;
 
+    use crate::consts::STX_V2;
     #[allow(unused_imports)]
     use crate::protocol::{V1, V2};
 
@@ -990,5 +1010,68 @@ mod tests {
             .clone()
             .try_into_versioned::<Versionless>()
             .is_ok());
+    }
+
+    #[test]
+    fn test_empty_payload_v2() {
+        let buffer = vec![
+            12,     // \
+            24,     //  |Junk bytes
+            240,    // /
+            STX_V2, // magic byte
+            1,      // payload_length
+            0,      // incompatibility flags
+            0,      // compatibility flags
+            1,      // sequence
+            10,     // system ID
+            255,    // component ID
+            74,     // \
+            0,      //  | message ID
+            0,      // /
+            0,      // payload
+            25,     // \
+            25,     // / checksum
+        ];
+        let frame = Frame::<Versionless>::recv(&mut Cursor::new(buffer)).unwrap();
+        dbg!(&frame);
+        let payload = vec![];
+        frame.send(&mut Cursor::new(payload)).unwrap();
+    }
+    #[test]
+    fn test_empty_payload_v2_signed() {
+        let buffer = vec![
+            12,     // \
+            24,     //  |Junk bytes
+            240,    // /
+            STX_V2, // magic byte
+            1,      // payload_length
+            0x01,   // incompatibility flags
+            0,      // compatibility flags
+            1,      // sequence
+            10,     // system ID
+            255,    // component ID
+            74,     // \
+            0,      //  | message ID
+            0,      // /
+            0,      // payload
+            25,     // \
+            25,     // / checksum
+            0,      // \
+            0,      //  |
+            0,      //  |
+            0,      //  |
+            0,      //  |
+            0,      //  |
+            0,      //  | signature
+            0,      //  |
+            0,      //  |
+            0,      //  |
+            0,      //  |
+            0,      //  |
+            0,      // /
+        ];
+        let frame = Frame::<Versionless>::recv(&mut Cursor::new(buffer)).unwrap();
+        let payload = vec![];
+        assert!(frame.send(&mut Cursor::new(payload)).is_ok());
     }
 }
